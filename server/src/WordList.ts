@@ -1,3 +1,5 @@
+import * as words2 from '../data/two-letter-words.json';
+import * as words3 from '../data/three-letter-words.json';
 import * as words4 from '../data/four-letter-words.json';
 import * as words5 from '../data/five-letter-words.json';
 import * as assert from 'assert';
@@ -12,6 +14,8 @@ class WordList {
     private readonly words: Map<number, Array<String>> = new Map();
 
     constructor() {
+        this.words.set(2, words2);
+        this.words.set(3, words3);
         this.words.set(4, words4);
         this.words.set(5, words5);
     }

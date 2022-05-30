@@ -32,3 +32,19 @@ export type WordLocation = {
     startingSquare: Location, 
     direction: 'across' | 'down'
 };
+
+/**
+ * A clue for the puzzle. Contains the clue text and word location.
+ */
+export type Clue = {
+    wordLocation: WordLocation,
+    clueText: String,
+};
+
+/**
+ * Exported puzzle in string form and array of clues.
+ */
+export type ExportedPuzzle = {
+    puzzle: String,
+    clues: Array<Clue>,
+};

@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { Char, LetterMap, Location, UnfilledSquare, WordLocation } from './types';
+import { OpenAIApi } from 'openai';
+import { Char, Clue, ExportedPuzzle, LetterMap, Location, UnfilledSquare, WordLocation } from './types';
 import Utils from './Utils';
 import WordList from './WordList';
 
@@ -128,10 +129,57 @@ class Crossword {
         return true;
     }
 
-    public export(): String {
+    public async export(openai: Readonly<OpenAIApi>): Promise<ExportedPuzzle> {
         const filled = this.checkFilled();
         if (filled) {
-            return JSON.stringify(this.crossword);
+            try {
+                const requests: Array<Promise<any>> = [];
+                for (const wordLocation of this.wordLocations) {
+                    const [wordLength, letterMap, _squares] = this.getInfo(wordLocation);
+                    const wordArray = new Array(wordLength);
+                    for (const [key, value] of letterMap) {
+                        wordArray[key] = value;
+                    }
+                    const word = wordArray.join("");
+                    
+                    console.log(`Making API request for ${word}`);
+                    const prompt = [
+                        'Write a clue for this word that could be found in a crossword puzzle. Specify if the word is plural or past tense.\n',
+                        'Word: froze',
+                        'Clue: past tense of what happens to water when it gets cold.\n',
+                        'Word: Philadelphia',
+                        'Clue: it’s always sunny here.\n',
+                        `Word: ${word}`,
+                        'Clue:'].join('');
+                    const completion = openai.createCompletion("text-davinci-002", {prompt});
+                    requests.push(completion);
+                }
+                const results = await Promise.all(requests);
+                const clues: Array<Clue> = [];
+                for (const [i, completion] of results.entries()) {
+                    assert(completion.data.choices);
+                    console.log(completion.data.choices);
+                    const clue = completion.data.choices[0].text;
+                    assert(clue);
+                    const wordLocation = this.wordLocations[i];
+                    clues.push({
+                        wordLocation,
+                        clueText: clue,
+                    });
+                }
+                return {
+                    puzzle: JSON.stringify(this.crossword), 
+                    clues
+                };
+            } catch (error: any) {
+                if (error.response) {
+                    console.log(error.response.status);
+                    console.log(error.response.data);
+                } else {
+                    console.log(error.message);
+                }
+                throw new Error('Network Error');
+            }
         } else {
             throw new Error("Puzzle is not filled");
         }
