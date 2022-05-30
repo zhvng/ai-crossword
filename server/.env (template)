@@ -1,0 +1,6 @@
+##############################################################
+# To use the app, create a .env file with the following fields.
+# Do NOT commit your secret keys.
+# Do NOT add your keys to this template file.
+
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
