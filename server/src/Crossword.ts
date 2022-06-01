@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { OpenAIApi } from 'openai';
-import { Char, Clue, ExportedPuzzle, LetterMap, Location, UnfilledSquare, WordLocation } from './types';
+import GPT from './GPT';
+import { Char, Clue, ExportedPuzzle, LetterMap, Location, UnfilledSquare, WordInfo, WordLocation } from './types';
 import Utils from './Utils';
 import WordList from './WordList';
 
@@ -22,7 +22,7 @@ class Crossword {
             const puzzleRow: Array<UnfilledSquare> = [];
             for (const square of row) {
                 if (square === false) {
-                    puzzleRow.push('black');
+                    puzzleRow.push('*');
                 } else {
                     puzzleRow.push(undefined);
                 }
@@ -33,22 +33,22 @@ class Crossword {
         // Index starting squares
         for (const [i, row] of this.crossword.entries()) {
             for (const [j, square] of row.entries()) {
-                if (square !== 'black') {
-                    if (i === 0 || this.crossword[i-1][j] === 'black') {
+                if (square !== '*') {
+                    if (i === 0 || this.crossword[i-1][j] === '*') {
                         const wordLocation: WordLocation = {
                             startingSquare: {row: i, col: j}, 
                             direction: 'down'
                         };
-                        const [nLetters, _a, _b] = this.getInfo(wordLocation);
-                        if (nLetters > 1) this.wordLocations.push(wordLocation);
+                        const { wordLength } = this.getInfo(wordLocation);
+                        if (wordLength > 1) this.wordLocations.push(wordLocation);
                     }
-                    if (j === 0 || this.crossword[i][j-1] === 'black') {
+                    if (j === 0 || this.crossword[i][j-1] === '*') {
                         const wordLocation: WordLocation = {
                             startingSquare: {row: i, col: j}, 
                             direction: 'across'
                         };
-                        const [nLetters, _a, _b] = this.getInfo(wordLocation);
-                        if (nLetters > 1) this.wordLocations.push(wordLocation);
+                        const { wordLength } = this.getInfo(wordLocation);
+                        if (wordLength > 1) this.wordLocations.push(wordLocation);
                     }
                 }
             }
@@ -61,7 +61,7 @@ class Crossword {
      * @param wordLocation Location of the start of the word and its direction.
      * @returns Number of letters in the word, a map of currently filled in letters and positions, and a list of all squares in the word.
      */
-    private getInfo(wordLocation: Readonly<WordLocation>): [number, LetterMap, Array<Location>] {
+    private getInfo(wordLocation: Readonly<WordLocation>): WordInfo {
         let counter = 0;
         const {startingSquare, direction} = wordLocation;
         let row = startingSquare.row;
@@ -71,16 +71,16 @@ class Crossword {
         if (direction === 'across') {
             while (col < this.width) {
                 const square = this.crossword[row][col];
-                if (square === 'black') break;
+                if (square === '*') break;
                 else if (square !== undefined) letters.push([counter, square]);
                 squares.push({row, col});
                 counter += 1;
                 col += 1;
             }
         } else if (direction === 'down') {
-            while (row < this.height && this.crossword[row][col] !== 'black') {
+            while (row < this.height && this.crossword[row][col] !== '*') {
                 const square = this.crossword[row][col];
-                if (square === 'black') break;
+                if (square === '*') break;
                 else if (square !== undefined) letters.push([counter, square])
                 squares.push({row, col});
                 counter += 1;
@@ -88,20 +88,20 @@ class Crossword {
             }
         }
         const letterMap: LetterMap = new Map(letters);
-        return [counter, letterMap, squares];
+        return {wordLength: counter, letterMap, squares};
     }
 
-    public fill(wordList: WordList): Boolean {
-        const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.map(arr => arr.slice());
-        const retries = 1000;
+    public fillSimple(wordList: WordList): Boolean {
+        const retries = 10000;
         for (let i = 0; i < retries; i++) {
+            const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.slice(0).map(arr => arr.slice(0));
             let filled = true;
             for (const wordLocation of Utils.shuffle(this.wordLocations)) {
-                const [wordLength, letterMap, squares] = this.getInfo(wordLocation);
+                const { wordLength, letterMap, squares } = this.getInfo(wordLocation);
                 const words = wordList.getWords(wordLength, letterMap, true);
                 if (words.length > 0) {
-                    for (const [i, character] of [...words[0]].entries()) {
-                        const {row, col} = squares[i];
+                    for (const [j, character] of [...words[0]].entries()) {
+                        const {row, col} = squares[j];
                         this.crossword[row][col] = character as Char;
                     }
                 } else {
@@ -112,11 +112,72 @@ class Crossword {
             if (filled) {
                 console.log(this.crossword, i);
                 return true;
+            } else {
+                // revert
+                this.crossword = crosswordCopy;
             }
         }
         console.log('failed', this.crossword);
-        // revert
-        this.crossword = crosswordCopy;
+        return false;
+    }
+
+    public fill(wordList: Readonly<WordList>): Boolean {
+        // const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.slice(0).map(arr => arr.slice(0));
+        const filled = this.fillRecurse(wordList, this.wordLocations);
+        console.log(this.crossword);
+        return filled;
+    }
+
+    private fillRecurse(wordList: Readonly<WordList>, wordsRemaining: Readonly<Array<WordLocation>>): Boolean {
+        if (wordsRemaining.length === 0) {
+            return true;
+        }
+
+        // Identify word with the smallest number of letters left to fill
+        // This simple algorithm will reduce the space we have to search
+        let minimumLettersLeft = 100;
+        let targetInfo: undefined | WordInfo = undefined;
+        let targetLocation: undefined | WordLocation = undefined;
+        const newWordsRemaining: Array<WordLocation> = [];
+        for (const wordLocation of wordsRemaining) {
+            const wordInfo = this.getInfo(wordLocation);
+            const { wordLength, letterMap } = wordInfo;
+            const lettersLeft = wordLength - letterMap.size;
+            if (lettersLeft < minimumLettersLeft) {
+                if (targetLocation !== undefined) newWordsRemaining.push(targetLocation);
+                minimumLettersLeft = lettersLeft;
+                targetInfo = wordInfo;
+                targetLocation = wordLocation;
+            } else {
+                newWordsRemaining.push(wordLocation);
+            }
+        }
+        assert(targetInfo !== undefined, "Target is undefined");
+        const { wordLength, letterMap, squares } = targetInfo;
+        const words = wordList.getWords(wordLength, letterMap, true);
+        if (words.length > 0) {
+            for (const word of words) {
+                const backup: Array<UnfilledSquare> = [];
+                for (const [j, character] of [...word].entries()) {
+                    const {row, col} = squares[j];
+                    backup.push(this.crossword[row][col]);
+                    // assert that no overwriting is happening
+                    if (this.crossword[row][col] !== undefined) {
+                        assert(this.crossword[row][col] === character);
+                    } else {
+                        this.crossword[row][col] = character as Char;
+                    }
+                }
+                const success = this.fillRecurse(wordList, newWordsRemaining);
+                if (success) return true;
+                
+                // restore backup
+                for (const [j, original] of [...backup].entries()) {
+                    const {row, col} = squares[j];
+                    this.crossword[row][col] = original;
+                }
+            }
+        }
         return false;
     }
 
@@ -129,36 +190,25 @@ class Crossword {
         return true;
     }
 
-    public async export(openai: Readonly<OpenAIApi>): Promise<ExportedPuzzle> {
+    public async export(gpt: Readonly<GPT>): Promise<ExportedPuzzle> {
         const filled = this.checkFilled();
         if (filled) {
             try {
                 const requests: Array<Promise<any>> = [];
                 for (const wordLocation of this.wordLocations) {
-                    const [wordLength, letterMap, _squares] = this.getInfo(wordLocation);
+                    const { wordLength, letterMap } = this.getInfo(wordLocation);
                     const wordArray = new Array(wordLength);
                     for (const [key, value] of letterMap) {
                         wordArray[key] = value;
                     }
                     const word = wordArray.join("");
-                    
-                    console.log(`Making API request for ${word}`);
-                    const prompt = [
-                        'Write a clue for this word that could be found in a crossword puzzle. Specify if the word is plural or past tense.\n',
-                        'Word: froze',
-                        'Clue: past tense of what happens to water when it gets cold.\n',
-                        'Word: Philadelphia',
-                        'Clue: it’s always sunny here.\n',
-                        `Word: ${word}`,
-                        'Clue:'].join('');
-                    const completion = openai.createCompletion("text-davinci-002", {prompt});
+                    const completion = gpt.generateClue(word);
                     requests.push(completion);
                 }
                 const results = await Promise.all(requests);
                 const clues: Array<Clue> = [];
                 for (const [i, completion] of results.entries()) {
                     assert(completion.data.choices);
-                    console.log(completion.data.choices);
                     const clue = completion.data.choices[0].text;
                     assert(clue);
                     const wordLocation = this.wordLocations[i];

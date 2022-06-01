@@ -11,7 +11,7 @@ export type Char = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | '
  * - Char = the letter in the square
  * - 'black' = black square
  */
-export type UnfilledSquare = undefined | Char | 'black';
+export type UnfilledSquare = undefined | Char | '*';
 
 /**
  * Location of a cell on the puzzle
@@ -32,6 +32,15 @@ export type WordLocation = {
     startingSquare: Location, 
     direction: 'across' | 'down'
 };
+
+/**
+ * Information about a word on the puzzle.
+ */
+ export type WordInfo = {
+    wordLength: number, 
+    letterMap: LetterMap,
+    squares: Array<Location>,
+ };
 
 /**
  * A clue for the puzzle. Contains the clue text and word location.
