@@ -2,6 +2,7 @@ import * as words2 from '../data/two-letter-words.json';
 import * as words3 from '../data/three-letter-words.json';
 import * as words4 from '../data/four-letter-words.json';
 import * as words5 from '../data/five-letter-words.json';
+import * as words6 from '../data/six-letter-words.json';
 import * as assert from 'assert';
 import { LetterMap } from './types';
 import Utils from './Utils';
@@ -18,6 +19,7 @@ class WordList {
         this.words.set(3, words3);
         this.words.set(4, words4);
         this.words.set(5, words5);
+        this.words.set(6, words6);
     }
 
     /**

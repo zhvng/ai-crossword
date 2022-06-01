@@ -22,9 +22,10 @@ async function testCrossword(){
         [false, true, true, true, true],
         [true, true, true, true, true],
         [true, true, true, true, false],
-        [true, true, true, true, false]
+        [true, true, true, true, false],
+        [true, true, true, false, false],
     ];
-    const crossword = new Crossword(5, 5, template);
+    const crossword = new Crossword(6, 5, template);
     
     console.log(template.map(arr => arr.map(elem => elem ? '_' : '*').join(' ')).join('\n'));
 
