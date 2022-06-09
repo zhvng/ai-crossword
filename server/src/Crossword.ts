@@ -14,7 +14,7 @@ class Crossword {
     constructor(
         private readonly height: number, 
         private readonly width: number, 
-        template: Array<Array<Boolean>>) 
+        template: Array<Array<boolean>>) 
     {
         assert(template.length === height, 'template has incorrect height');
         for (const row of template) {
@@ -91,7 +91,7 @@ class Crossword {
         return {wordLength: counter, letterMap, squares};
     }
 
-    public fillSimple(wordList: WordList): Boolean {
+    public fillSimple(wordList: WordList): boolean {
         const retries = 10000;
         for (let i = 0; i < retries; i++) {
             const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.slice(0).map(arr => arr.slice(0));
@@ -121,31 +121,35 @@ class Crossword {
         return false;
     }
 
-    public fill(wordList: Readonly<WordList>): Boolean {
+    public fill(wordList: Readonly<WordList>): boolean {
         // const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.slice(0).map(arr => arr.slice(0));
-        const filled = this.fillRecurse(wordList, this.wordLocations);
-        console.log(this.crossword);
+        const [filled, counter] = this.fillRecurse(wordList, this.wordLocations);
+        console.log(this.crossword, counter, filled);
         return filled;
     }
 
-    private fillRecurse(wordList: Readonly<WordList>, wordsRemaining: Readonly<Array<WordLocation>>): Boolean {
+    private fillRecurse(wordList: Readonly<WordList>, wordsRemaining: Readonly<Array<WordLocation>>): [boolean, number] {
+        let counter = 0;
         if (wordsRemaining.length === 0) {
-            return true;
+            return [true, counter];
         }
 
-        // Identify word with the smallest number of letters left to fill
+        // Identify word with the smallest number of possible words left
         // This simple algorithm will reduce the space we have to search
-        let minimumLettersLeft = 100;
+        // If a word has no possible words left, do not continue
+        let minimumWordsLeft = 1000000;
         let targetInfo: undefined | WordInfo = undefined;
         let targetLocation: undefined | WordLocation = undefined;
         const newWordsRemaining: Array<WordLocation> = [];
         for (const wordLocation of wordsRemaining) {
             const wordInfo = this.getInfo(wordLocation);
             const { wordLength, letterMap } = wordInfo;
-            const lettersLeft = wordLength - letterMap.size;
-            if (lettersLeft < minimumLettersLeft) {
+            const wordsLeft = wordList.getWords(wordLength, letterMap, false).length;
+            if (wordsLeft === 0) {
+                return [false, counter];
+            } else if (wordsLeft < minimumWordsLeft) {
                 if (targetLocation !== undefined) newWordsRemaining.push(targetLocation);
-                minimumLettersLeft = lettersLeft;
+                minimumWordsLeft = wordsLeft;
                 targetInfo = wordInfo;
                 targetLocation = wordLocation;
             } else {
@@ -157,6 +161,7 @@ class Crossword {
         const words = wordList.getWords(wordLength, letterMap, true);
         if (words.length > 0) {
             for (const word of words) {
+                counter += 1;
                 const backup: Array<UnfilledSquare> = [];
                 for (const [j, character] of [...word].entries()) {
                     const {row, col} = squares[j];
@@ -168,20 +173,22 @@ class Crossword {
                         this.crossword[row][col] = character as Char;
                     }
                 }
-                const success = this.fillRecurse(wordList, newWordsRemaining);
-                if (success) return true;
+                const [success, recursiveCounter] = this.fillRecurse(wordList, newWordsRemaining);
+                counter += recursiveCounter;
+                if (success) return [true, counter];
                 
                 // restore backup
                 for (const [j, original] of [...backup].entries()) {
                     const {row, col} = squares[j];
                     this.crossword[row][col] = original;
                 }
+                if (counter > 50000) return [false, counter];
             }
         }
-        return false;
+        return [false, counter];
     }
 
-    public checkFilled(): Boolean {
+    public checkFilled(): boolean {
         for (const row of this.crossword) {
             for (const square of row) {
                 if (square === undefined) return false;

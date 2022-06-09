@@ -47,13 +47,13 @@ export type WordLocation = {
  */
 export type Clue = {
     wordLocation: WordLocation,
-    clueText: String,
+    clueText: string,
 };
 
 /**
  * Exported puzzle in string form and array of clues.
  */
 export type ExportedPuzzle = {
-    puzzle: String,
+    puzzle: string,
     clues: Array<Clue>,
 };

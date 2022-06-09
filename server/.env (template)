@@ -3,4 +3,5 @@
 # Do NOT commit your secret keys.
 # Do NOT add your keys to this template file.
 
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+OPENAI_API_KEY=
+PORT=

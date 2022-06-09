@@ -13,5 +13,10 @@ class Utils {
         }
         return array;
     }
+
+    public static rotateArrayClockwise(matrix: Array<Array<any>>) {
+        const matrixCopy = matrix.slice(0).map(arr => arr.slice(0));
+        return matrixCopy[0].map((_, index) => matrixCopy.map(row => row[index]).reverse());
+    }
 }
 export default Utils;

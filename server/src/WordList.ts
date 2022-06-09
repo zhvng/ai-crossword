@@ -12,7 +12,7 @@ import Utils from './Utils';
  * LOAD AND INDEX WORDS
  * */ 
 class WordList {
-    private readonly words: Map<number, Array<String>> = new Map();
+    private readonly words: Map<number, Array<string>> = new Map();
 
     constructor() {
         this.words.set(2, words2);
@@ -29,7 +29,7 @@ class WordList {
      * @param conditions Letter map specifying letters that must be in word.
      * @returns All possible nLetter words satifying the condtiions.
      */
-    public getWords(nLetters: number, conditions: Readonly<LetterMap>, shuffle: Boolean = true): Array<String> {
+    public getWords(nLetters: number, conditions: Readonly<LetterMap>, shuffle: boolean = true): Array<string> {
         for (const [key, _] of conditions) {
             assert(key >= 0 && key < nLetters, "invalid key");
         }

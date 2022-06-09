@@ -11,7 +11,7 @@ class GPT {
         private readonly prod: boolean = true,
         ) {}
 
-    public async generateClue(word: String): Promise<any> {
+    public async generateClue(word: string): Promise<any> {
         if (this.prod) {
             console.log(`Making API request for ${word}`);
             const prompt = [

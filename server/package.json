@@ -2,9 +2,10 @@
   "name": "crossword",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.ts",
   "scripts": {
-    "test": "ts-node test.ts"
+    "test": "ts-node test.ts",
+    "start": "ts-node src/server.ts"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +14,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.1",
+    "fastify": "^4.0.0",
     "openai": "^2.0.5"
   }
 }
