@@ -29,7 +29,7 @@ class WordList {
      * @param conditions Letter map specifying letters that must be in word.
      * @returns All possible nLetter words satifying the condtiions.
      */
-    public getWords(nLetters: number, conditions: Readonly<LetterMap>, shuffle: boolean = true): Array<string> {
+    public getWords(nLetters: number, conditions: Readonly<LetterMap>, shuffle: boolean = true, ignoreList: Readonly<Set<string>> = new Set()): Array<string> {
         for (const [key, _] of conditions) {
             assert(key >= 0 && key < nLetters, "invalid key");
         }
@@ -40,7 +40,7 @@ class WordList {
             for (const [key, value] of conditions) {
                 if (word[key] !== value) add = false;
             }
-            if (add) result.push(word);
+            if (add && !ignoreList.has(word)) result.push(word);
         }
 
         if (shuffle) {

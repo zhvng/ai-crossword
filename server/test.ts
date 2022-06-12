@@ -38,11 +38,11 @@ async function testCrossword(){
 
 function generateMiniCrosswordTemplate(){
     const template = [
-        [false, true, true, true, true],
-        [false, true, true, true, true],
         [true, true, true, true, true],
-        [true, true, true, true, false],
-        [true, true, true, true, false]
+        [true, true, true, true, true],
+        [true, true, true, true, true],
+        [true, true, true, true, true],
+        [true, true, true, true, true]
     ];
     const rotate = Math.floor(Math.random() * 2);
     if (rotate === 1) {

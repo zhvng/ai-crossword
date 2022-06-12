@@ -30,7 +30,8 @@ export type LetterMap = Map<number, Char>;
  */
 export type WordLocation = {
     startingSquare: Location, 
-    direction: 'across' | 'down'
+    direction: 'across' | 'down',
+    number: number,
 };
 
 /**
@@ -48,6 +49,7 @@ export type WordLocation = {
 export type Clue = {
     wordLocation: WordLocation,
     clueText: string,
+    answer: string,
 };
 
 /**

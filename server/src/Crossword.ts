@@ -31,25 +31,32 @@ class Crossword {
         }
 
         // Index starting squares
+        let counter = 1;
         for (const [i, row] of this.crossword.entries()) {
             for (const [j, square] of row.entries()) {
                 if (square !== '*') {
+                    let counted = false;
                     if (i === 0 || this.crossword[i-1][j] === '*') {
                         const wordLocation: WordLocation = {
                             startingSquare: {row: i, col: j}, 
-                            direction: 'down'
+                            direction: 'down',
+                            number: counter,
                         };
                         const { wordLength } = this.getInfo(wordLocation);
                         if (wordLength > 1) this.wordLocations.push(wordLocation);
+                        counted = true;
                     }
                     if (j === 0 || this.crossword[i][j-1] === '*') {
                         const wordLocation: WordLocation = {
                             startingSquare: {row: i, col: j}, 
-                            direction: 'across'
+                            direction: 'across',
+                            number: counter,
                         };
                         const { wordLength } = this.getInfo(wordLocation);
                         if (wordLength > 1) this.wordLocations.push(wordLocation);
+                        counted = true
                     }
+                    if (counted) counter += 1;
                 }
             }
         }
@@ -123,12 +130,12 @@ class Crossword {
 
     public fill(wordList: Readonly<WordList>): boolean {
         // const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.slice(0).map(arr => arr.slice(0));
-        const [filled, counter] = this.fillRecurse(wordList, this.wordLocations);
+        const [filled, counter] = this.fillRecurse(wordList, this.wordLocations, new Set());
         console.log(this.crossword, counter, filled);
         return filled;
     }
 
-    private fillRecurse(wordList: Readonly<WordList>, wordsRemaining: Readonly<Array<WordLocation>>): [boolean, number] {
+    private fillRecurse(wordList: Readonly<WordList>, wordsRemaining: Readonly<Array<WordLocation>>, usedWords: Readonly<Set<string>>): [boolean, number] {
         let counter = 0;
         if (wordsRemaining.length === 0) {
             return [true, counter];
@@ -144,7 +151,7 @@ class Crossword {
         for (const wordLocation of wordsRemaining) {
             const wordInfo = this.getInfo(wordLocation);
             const { wordLength, letterMap } = wordInfo;
-            const wordsLeft = wordList.getWords(wordLength, letterMap, false).length;
+            const wordsLeft = wordList.getWords(wordLength, letterMap, false, usedWords).length;
             if (wordsLeft === 0) {
                 return [false, counter];
             } else if (wordsLeft < minimumWordsLeft) {
@@ -158,7 +165,7 @@ class Crossword {
         }
         assert(targetInfo !== undefined, "Target is undefined");
         const { wordLength, letterMap, squares } = targetInfo;
-        const words = wordList.getWords(wordLength, letterMap, true);
+        const words = wordList.getWords(wordLength, letterMap, true, usedWords);
         if (words.length > 0) {
             for (const word of words) {
                 counter += 1;
@@ -173,7 +180,9 @@ class Crossword {
                         this.crossword[row][col] = character as Char;
                     }
                 }
-                const [success, recursiveCounter] = this.fillRecurse(wordList, newWordsRemaining);
+                const newUsedWords = new Set(usedWords);
+                newUsedWords.add(word);
+                const [success, recursiveCounter] = this.fillRecurse(wordList, newWordsRemaining, newUsedWords);
                 counter += recursiveCounter;
                 if (success) return [true, counter];
                 
@@ -202,6 +211,7 @@ class Crossword {
         if (filled) {
             try {
                 const requests: Array<Promise<any>> = [];
+                const words: Array<string> = [];
                 for (const wordLocation of this.wordLocations) {
                     const { wordLength, letterMap } = this.getInfo(wordLocation);
                     const wordArray = new Array(wordLength);
@@ -211,6 +221,7 @@ class Crossword {
                     const word = wordArray.join("");
                     const completion = gpt.generateClue(word);
                     requests.push(completion);
+                    words.push(word);
                 }
                 const results = await Promise.all(requests);
                 const clues: Array<Clue> = [];
@@ -222,6 +233,7 @@ class Crossword {
                     clues.push({
                         wordLocation,
                         clueText: clue,
+                        answer: words[i],
                     });
                 }
                 return {

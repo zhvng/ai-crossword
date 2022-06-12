@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import * as dotenv from 'dotenv';
 import assert = require('assert');
 import App from './App';
@@ -13,6 +14,10 @@ const app = new App(openAiAPIKey);
 
 const fastify = Fastify({
   logger: false
+});
+
+fastify.register(cors, {
+    origin: /http:\/\/localhost/,
 });
 
 fastify.addHook('onRequest', (request, _reply, done) => {

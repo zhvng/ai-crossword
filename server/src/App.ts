@@ -12,7 +12,7 @@ class App {
     constructor(apiKey: string) {
         const configuration = new Configuration({ apiKey });
         const openAi = new OpenAIApi(configuration);
-        this.gpt = new GPT(openAi, false);
+        this.gpt = new GPT(openAi, true);
         this.wordList = new WordList();
     }
 
