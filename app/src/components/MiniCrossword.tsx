@@ -30,17 +30,16 @@ export const MiniCrossword: FC = props => {
   }, []);
 
   const newPuzzle = async () => {
+    setHighlightedClue('');
     resetPuzzle();
     setCrosswordData(defaultCrossword);
-    const data = await CrosswordStorage.getNewCrossword(crosswordType);
-    setCrosswordData(data);
+    const { crosswordData, crosswordState} = await CrosswordStorage.getNewCrossword(crosswordType);
+    setCrosswordData(crosswordData);
+    setCrosswordState(crosswordState);
   }
 
   const resetPuzzle = async () => {
     crosswordRef.current.reset();
-    const newState = await CrosswordStorage.resetPuzzleState(crosswordType);
-    setCrosswordState(newState);
-    setHighlightedClue('');
   }
 
   const onSolved = async(correct: boolean) => {

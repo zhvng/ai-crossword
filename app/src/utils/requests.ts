@@ -12,7 +12,7 @@ export async function requestMiniCrossword() {
 
     for (const clue of data.clues) {
         crosswordData[clue.wordLocation.direction][clue.wordLocation.number] = {
-            clue: clue.clueText,
+            clue: clue.clueText.trim().split('\n')[0],
             answer: clue.answer,
             row: clue.wordLocation.startingSquare.row,
             col: clue.wordLocation.startingSquare.col,

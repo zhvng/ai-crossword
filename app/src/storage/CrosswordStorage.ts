@@ -31,10 +31,11 @@ class CrosswordStorage {
             return CrosswordStorage.getCrosswordStorage(type);
         }
     }
-    public static async getNewCrossword(type: CrosswordType): Promise<CrosswordData> {
+    public static async getNewCrossword(type: CrosswordType): Promise<{crosswordData: CrosswordData, crosswordState: CrosswordState}> {
         const data: CrosswordData = await requestMiniCrossword();
-        CrosswordStorage.updateCrosswordStorage(type, data, CrosswordStorage.getDefaultCrosswordState());
-        return data;
+        const defaultState = CrosswordStorage.getDefaultCrosswordState();
+        CrosswordStorage.updateCrosswordStorage(type, data, defaultState);
+        return {crosswordData: data, crosswordState: defaultState};
     }
     public static async puzzleSolved(type: CrosswordType): Promise<CrosswordState> {
         const endingTimestamp = new Date().getTime();
