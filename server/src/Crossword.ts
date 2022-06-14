@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import GPT from './GPT';
 import { Char, Clue, ExportedPuzzle, LetterMap, Location, UnfilledSquare, WordInfo, WordLocation } from './types';
 import Utils from './Utils';

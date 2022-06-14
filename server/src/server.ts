@@ -13,20 +13,20 @@ const port: number = parseInt(process.env.PORT);
 
 const app = new App(openAiAPIKey);
 
-const fastify = Fastify({
+const server = Fastify({
   logger: process.env.STAGE === 'dev'
 });
 
-fastify.register(cors, {
+server.register(cors, {
     origin: /http:\/\/localhost/,
 });
 
-fastify.addHook('onRequest', (request, _reply, done) => {
+server.addHook('onRequest', (request, _reply, done) => {
     if (request.routerPath) console.log(request.routerMethod, request.routerPath);
     done();
 })
 
-fastify.post('/generatemini', async (_request, _reply) => {
+server.post('/generatemini', async (_request, _reply) => {
     const exportedPuzzle = await app.generateMiniCrossword();
     return exportedPuzzle;
 })
@@ -36,10 +36,16 @@ fastify.post('/generatemini', async (_request, _reply) => {
  */
 const start = async () => {
   try {
-    await fastify.listen({ port });
+    await server.listen({ port });
   } catch (err) {
-    fastify.log.error(err)
+    server.log.error(err)
     process.exit(1)
   }
 }
-start();
+
+// if called directly, e.g. node server
+if (require.main === module) {
+    start();
+}
+
+export default server ;
