@@ -7,13 +7,14 @@ import App from './App';
 dotenv.config();
 assert(process.env.OPENAI_API_KEY !== undefined);
 assert(process.env.PORT !== undefined);
+assert(process.env.STAGE !== undefined);
 const openAiAPIKey: string = process.env.OPENAI_API_KEY;
 const port: number = parseInt(process.env.PORT);
 
 const app = new App(openAiAPIKey);
 
 const fastify = Fastify({
-  logger: false
+  logger: process.env.STAGE === 'dev'
 });
 
 fastify.register(cors, {

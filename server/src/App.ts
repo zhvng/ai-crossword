@@ -27,14 +27,68 @@ class App {
         return result;
     }
 
-    private generateMiniCrosswordTemplate(){
-        const template = [
-            [false, true, true, true, true],
-            [false, true, true, true, true],
-            [true, true, true, true, true],
-            [true, true, true, true, false],
-            [true, true, true, true, false]
-        ];
+    private generateMiniCrosswordTemplate(){   
+        const random = Utils.weightedRandom([0.4, 0.2, 0.2, 0.05, 0.05, 0.05, 0.05]);
+
+        let template: Array<Array<boolean>> = [];
+
+        if (random === 0) {
+            template = [
+                [false, true, true, true, true],
+                [false, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, false],
+                [true, true, true, true, false],
+            ];
+        } else if (random === 1) {
+            template = [
+                [false, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, false],
+            ];
+        } else if (random === 2) {
+            template = [
+                [false, true, true, true, false],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+                [false, true, true, true, false],
+            ];
+        } else if (random === 3) {
+            template = [
+                [false, true, true, true, true],
+                [false, true, true, true, true],
+                [false, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+            ];
+        } else if (random === 4) {
+            template = [
+                [false, true, true, true, false],
+                [false, true, true, true, false],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+            ];
+        } else if (random === 5) {
+            template = [
+                [false, false, true, true, true],
+                [false, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, false],
+            ];
+        } else {
+            template = [
+                [true, true, true, true, true],
+                [false, true, true, true, true],
+                [true, true, true, true, true],
+                [true, true, true, true, false],
+                [true, true, true, true, true],
+            ];
+        }
         const rotate = Math.floor(Math.random() * 2);
         if (rotate === 1) {
             return Utils.rotateArrayClockwise(template);
