@@ -13,7 +13,6 @@ class GPT {
 
     public async generateClue(word: string): Promise<any> {
         if (this.prod) {
-            console.log(`Making API request for ${word}`);
             const prompt = [
                 'Write a clue for this word that could be found in a crossword puzzle. Specify if the word is plural or past tense.\n',
                 'Word: FROZE',

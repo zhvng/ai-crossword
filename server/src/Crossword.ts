@@ -117,7 +117,6 @@ class Crossword {
                 }
             }
             if (filled) {
-                console.log(this.crossword, i);
                 return true;
             } else {
                 // revert
@@ -131,7 +130,7 @@ class Crossword {
     public fill(wordList: Readonly<WordList>): boolean {
         // const crosswordCopy: Array<Array<UnfilledSquare>> = this.crossword.slice(0).map(arr => arr.slice(0));
         const [filled, counter] = this.fillRecurse(wordList, this.wordLocations, new Set());
-        console.log(this.crossword, counter, filled);
+        console.log(`filled: ${filled}, in ${counter} iterations`);
         return filled;
     }
 

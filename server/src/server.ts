@@ -28,6 +28,7 @@ server.addHook('onRequest', (request, _reply, done) => {
 
 server.post('/generatemini', async (_request, _reply) => {
     const exportedPuzzle = await app.generateMiniCrossword();
+    console.log('success! result:', exportedPuzzle);
     return exportedPuzzle;
 })
 
