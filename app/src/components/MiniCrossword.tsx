@@ -14,6 +14,7 @@ export const MiniCrossword: FC = props => {
   const [crosswordState, setCrosswordState] = useState({startingTimestamp: 0, endingTimestamp: undefined, isSolved: false});
   let crosswordRef = useRef<CrosswordImperative>();
   const [highlightedClue, setHighlightedClue] = useState('');
+  const [loadError, setLoadError] = useState(false);
 
   let modalRef = useRef<ModalHandle>();
 
@@ -22,24 +23,42 @@ export const MiniCrossword: FC = props => {
 
   useEffect(()=>{
     const fx = async () => {
-      const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
-      setCrosswordState(crosswordState);
-      setCrosswordData(crosswordData);
+      try {
+        const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
+        setCrosswordState(crosswordState);
+        setCrosswordData(crosswordData);
+      } catch(error) {
+        console.error('request error', error);
+        setLoadError(true);
+      }
     }
     fx();
   }, []);
 
+  const errorRetry = async () => {
+    setLoadError(false);
+    await newPuzzle();
+  }
+
   const newPuzzle = async () => {
-    setHighlightedClue('');
-    resetPuzzle();
-    setCrosswordData(defaultCrossword);
-    const { crosswordData, crosswordState} = await CrosswordStorage.getNewCrossword(crosswordType);
-    setCrosswordData(crosswordData);
-    setCrosswordState(crosswordState);
+    try {
+      setHighlightedClue('');
+      resetPuzzle();
+      setCrosswordData(defaultCrossword);
+      const { crosswordData, crosswordState} = await CrosswordStorage.getNewCrossword(crosswordType);
+      setCrosswordData(crosswordData);
+      setCrosswordState(crosswordState);
+    }
+    catch (error) {
+      console.error('request error', error);
+      setLoadError(true);
+    }
   }
 
   const resetPuzzle = async () => {
-    crosswordRef.current.reset();
+    if (crosswordRef.current !== undefined) {
+      crosswordRef.current.reset();
+    }
   }
 
   const onSolved = async(correct: boolean) => {
@@ -154,6 +173,18 @@ export const MiniCrossword: FC = props => {
       </>
     );
   } else {
-    return <div>loading</div>
+    if (loadError === false) return <div>Loading 🕰</div>
+    else return (
+      <div className='w-64 m-auto'>
+          <p className='pb-10 text-md'>
+            Loading error 🪑
+          </p>
+          <button 
+              onClick={errorRetry}
+              className="font-semibold w-[100%] h-14 border border-black  hover:bg-pastel-yellow/[.4] rounded" >
+              Retry ✨
+          </button>
+          <div className='mt-10'></div>
+      </div>);
   }
 };
