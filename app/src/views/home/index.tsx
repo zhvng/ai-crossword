@@ -15,7 +15,7 @@ export const HomeView: FC = ({ }) => {
     <div className="mx-auto p-4 h-screen w-full">
       <div className="flex flex-col justify-center text-center items-center h-full">
         <div className='w-64'>
-          <p className='pb-10'>
+          <p className='pb-10 text-md'>
             AI Crossword uses natural language processing to generate crossword puzzles. 
           </p>
           <button 
@@ -23,7 +23,7 @@ export const HomeView: FC = ({ }) => {
               className="font-semibold w-[100%] h-14 border border-black  hover:bg-pastel-yellow/[.4] rounded" >
               Generate ✨
           </button>
-          <p className='pt-10 text-xs'>
+          <p className='pt-10 text-md mb-20'>
             Dedicated to Brooke 🐈
           </p>
         </div>

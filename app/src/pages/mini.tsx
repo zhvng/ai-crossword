@@ -1,8 +1,8 @@
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import { MiniView } from "../views";
 
-const Basics: NextPage = (props) => {
+const Mini: NextPage = () => {
   return (
     <div>
       <Head>
@@ -17,4 +17,4 @@ const Basics: NextPage = (props) => {
   );
 };
 
-export default Basics;
+export default Mini;

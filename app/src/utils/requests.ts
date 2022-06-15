@@ -1,7 +1,13 @@
 import { CrosswordData } from "models/types";
+import { join } from 'path';
+
+let apiUrl = 'http://localhost:3005';
+if (process.env.NODE_ENV === 'production') {
+    apiUrl = 'https://api.aicrossword.app';
+}
 
 export async function requestMiniCrossword() {
-    const response = await fetch('http://localhost:3005/generatemini', {
+    const response = await fetch(apiUrl + '/generatemini', {
         method: 'POST',
     });
     const crosswordData: CrosswordData = {
