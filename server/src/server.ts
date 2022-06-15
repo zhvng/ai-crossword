@@ -18,7 +18,7 @@ const server = Fastify({
 });
 
 server.register(cors, {
-    origin: /http:\/\/localhost/,
+    origin: "*",
 });
 
 server.addHook('onRequest', (request, _reply, done) => {
