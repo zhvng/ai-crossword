@@ -173,8 +173,18 @@ export const MiniCrossword: FC = props => {
       </>
     );
   } else {
-    if (loadError === false) return <div>Loading 🕰</div>
-    else return (
+    if (loadError === false) {
+      return (
+      <div className='w-64 m-auto'>
+        <p className='pb-10 text-md'>
+          Generating 🪄
+        </p>
+        <div className='loader'></div>
+        <p className='pt-10 text-md'>
+          May take a while. Do not refresh this page.
+        </p>
+      </div>);
+    } else return (
       <div className='w-64 m-auto'>
           <p className='pb-10 text-md'>
             Loading error 🪑
