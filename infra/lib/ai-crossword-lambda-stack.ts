@@ -41,7 +41,7 @@ export class AiCrosswordLambdaStack extends Stack {
       // entry: path.join(__dirname, `/../../server/src/lambda.ts`),
       code: new AssetCode('../server'),
       memorySize: 256,
-      timeout: Duration.seconds(15),
+      timeout: Duration.seconds(30),
       environment: {
         STAGE: 'prod'
       }
