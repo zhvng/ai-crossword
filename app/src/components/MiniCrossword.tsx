@@ -6,15 +6,20 @@ import CrosswordStorage from 'storage/CrosswordStorage';
 import { theme } from '../../tailwind.config.js';
 import Modal, { ModalHandle } from './Modal';
 import { Timer } from './Timer';
+import { useRouter } from 'next/router';
+const codec = require('json-url')('lzw');
 
 export const MiniCrossword: FC = props => {
+  const { query, replace } = useRouter();
   const crosswordType = 'mini';
   const defaultCrossword = {across: undefined, down: undefined};
   const [crosswordData, setCrosswordData] = useState(defaultCrossword);
-  const [crosswordState, setCrosswordState] = useState({startingTimestamp: 0, endingTimestamp: undefined, isSolved: false});
+  const [crosswordState, setCrosswordState] = useState({startingTimestamp: 0, endingTimestamp: undefined, isSolved: false, usedReveal: false});
   let crosswordRef = useRef<CrosswordImperative>();
   const [highlightedClue, setHighlightedClue] = useState('');
   const [loadError, setLoadError] = useState(false);
+  const [clipboardAlertVisible, setClipboardAlertVisible] = useState(false);
+  const [usedReveal, setUsedReveal] = useState(false);
 
   let modalRef = useRef<ModalHandle>();
 
@@ -24,16 +29,25 @@ export const MiniCrossword: FC = props => {
   useEffect(()=>{
     const fx = async () => {
       try {
-        const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
-        setCrosswordState(crosswordState);
-        setCrosswordData(crosswordData);
+        if (query.data !== undefined) {
+          resetPuzzle();
+          const crosswordData = await codec.decompress(query.data);
+          const { crosswordState } = await CrosswordStorage.setNewCrossword(crosswordType, crosswordData);
+          setCrosswordData(crosswordData);
+          setCrosswordState(crosswordState);
+          replace('/mini');
+        } else {
+          const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
+          setCrosswordState(crosswordState);
+          setCrosswordData(crosswordData);
+        }
       } catch(error) {
         console.error('request error', error);
         setLoadError(true);
       }
     }
     fx();
-  }, []);
+  }, [query]);
 
   const errorRetry = async () => {
     setLoadError(false);
@@ -55,19 +69,47 @@ export const MiniCrossword: FC = props => {
     }
   }
 
-  const resetPuzzle = async () => {
-    if (crosswordRef.current !== undefined) {
+  const resetPuzzle = () => {
+    setUsedReveal(false);
+    if (crosswordRef.current) {
       crosswordRef.current.reset();
+    }
+  }
+
+  const revealPuzzle = () => {
+    if (crosswordRef.current) {
+      setUsedReveal(true);
+      crosswordRef.current.fillAllAnswers();
+    }
+  }
+
+  const sharePuzzle = async () =>{
+    const encodedPuzzle = await codec.compress(crosswordData);
+    let text = `I solved this AI generated crossword puzzle in ${Math.round(solvedTime/1000)} seconds! Solve it here:`;
+    if (crosswordState.usedReveal) text = `I couldn't solve this AI generated crossword puzzle 😡. Can you?`
+    const url = `https://aicrossword.app/mini?data=${encodedPuzzle}`;
+    if (navigator.share) {
+      navigator.share({
+        text,
+        url
+      }).then(() => {
+        console.log('Thanks for sharing!');
+      })
+      .catch(console.error);
+    } else {
+      navigator.clipboard.writeText(text + ' ' + url);
+      setClipboardAlertVisible(true);
+      setTimeout(()=>{setClipboardAlertVisible(false)}, 1000);
     }
   }
 
   const onSolved = async(correct: boolean) => {
     if (correct) {
       if (!crosswordState.isSolved) {
-        const newState = await CrosswordStorage.puzzleSolved(crosswordType);
+        const newState = await CrosswordStorage.puzzleSolved(crosswordType, usedReveal);
         setCrosswordState(newState);
         console.log('opening');
-        openSolvedModal();
+        if (!newState.usedReveal) openSolvedModal();
       }
     }
   }
@@ -120,7 +162,7 @@ export const MiniCrossword: FC = props => {
       <>
         <Modal ref={modalRef} defaultOpen={false} timeElapsed={solvedTime}></Modal>
         <div className="w-[100%] flex justify-end pb-1" >
-          <Timer endingTimestamp={crosswordState.endingTimestamp} startingTimestamp={crosswordState.startingTimestamp}></Timer>
+          <Timer usedReveal={crosswordState.usedReveal} endingTimestamp={crosswordState.endingTimestamp} startingTimestamp={crosswordState.startingTimestamp}></Timer>
         </div>
         <div className="h-14 flex">
           <div className="flex-none w-[20%]">
@@ -130,21 +172,51 @@ export const MiniCrossword: FC = props => {
               Check
             </button>: <button 
               className="font-semibold w-[90%] h-14 border border-black hover:bg-pastel-yellow/[.4] rounded" 
-              onClick={openSolvedModal}> <span className="text-[26px]">✨</span>
+              onClick={()=>{
+                if (crosswordState.isSolved) {
+                  crosswordRef.current.fillAllAnswers();
+                }
+                if (!crosswordState.usedReveal) openSolvedModal();
+              }}> <span className="text-[26px]">{!crosswordState.usedReveal ? '✨': '🔎'}</span>
             </button>}
           </div>
           <div className="flex-none w-[20%]">
-            <button 
+            {!crosswordState.isSolved && <button 
               className="font-semibold w-[90%] h-14 border border-black hover:bg-pastel-yellow/[.4] rounded" 
               onClick={resetPuzzle}>
               Reset
-            </button>
+            </button>}
           </div>
 
           <div className="flex-none w-[20%]">
+            {!crosswordState.isSolved && <button 
+              className="font-semibold w-[90%] h-14 border border-black hover:bg-pastel-yellow/[.4] rounded" 
+              onClick={revealPuzzle}>
+              Reveal
+            </button>}
           </div>
 
           <div className="flex-none w-[20%]">
+            {crosswordState.isSolved && <>
+              <button 
+                className="font-semibold w-[90%] h-14 border border-black hover:bg-pastel-yellow/[.4] rounded" 
+                onClick={sharePuzzle}>
+                  Share
+              </button>
+              {clipboardAlertVisible === true && 
+                  <div
+                  className="fixed inset-0 overflow-y-auto h-full w-full z-10"
+                  id="my-modal"
+                >
+                  <div
+                    className="relative top-0 mx-auto p-2 border w-fit shadow-lg rounded-md bg-white"
+                  >
+                    <div>
+                      Copied to clipboard 📋
+                    </div>
+                  </div>
+                </div>}
+            </>}
           </div>
 
           <div className="flex-none w-[20%]">

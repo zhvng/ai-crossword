@@ -20,6 +20,7 @@ export type CrosswordState = {
     startingTimestamp: number,
     endingTimestamp: number | undefined,
     isSolved: boolean,
+    usedReveal: boolean,
 }
 
 export type CrosswordType = 'mini' | 'standard';

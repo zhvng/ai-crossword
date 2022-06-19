@@ -14,6 +14,7 @@ class CrosswordStorage {
             startingTimestamp: new Date().getTime(),
             endingTimestamp: undefined,
             isSolved: false,
+            usedReveal: false,
         };
     };
 
@@ -37,7 +38,12 @@ class CrosswordStorage {
         CrosswordStorage.updateCrosswordStorage(type, data, defaultState);
         return {crosswordData: data, crosswordState: defaultState};
     }
-    public static async puzzleSolved(type: CrosswordType): Promise<CrosswordState> {
+    public static async setNewCrossword(type: CrosswordType, crosswordData: CrosswordData): Promise<{crosswordData: CrosswordData, crosswordState: CrosswordState}> {
+        const defaultState = CrosswordStorage.getDefaultCrosswordState();
+        CrosswordStorage.updateCrosswordStorage(type, crosswordData, defaultState);
+        return {crosswordData: crosswordData, crosswordState: defaultState};
+    }
+    public static async puzzleSolved(type: CrosswordType, usedReveal: boolean = false): Promise<CrosswordState> {
         const endingTimestamp = new Date().getTime();
         const storageExists = CrosswordStorage.checkCrosswordStorage(type);
         if (!storageExists) {
@@ -46,6 +52,7 @@ class CrosswordStorage {
             const { crosswordState } = CrosswordStorage.getCrosswordStorage(type);
             crosswordState.endingTimestamp = endingTimestamp;
             crosswordState.isSolved = true;
+            if (usedReveal) crosswordState.usedReveal = true;
             CrosswordStorage.updateCrosswordStorage(type, undefined, crosswordState);
             return crosswordState;
         }
