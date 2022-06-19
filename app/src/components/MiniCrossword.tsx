@@ -31,11 +31,12 @@ export const MiniCrossword: FC = props => {
       try {
         if (query.data !== undefined) {
           resetPuzzle();
-          const crosswordData = await codec.decompress(query.data);
+          const crosswordData: CrosswordData = await codec.decompress(query.data);
+          replace('/mini');
+          if (crosswordData.across === undefined || crosswordData.down === undefined) throw new Error('invalid input');
           const { crosswordState } = await CrosswordStorage.setNewCrossword(crosswordType, crosswordData);
           setCrosswordData(crosswordData);
           setCrosswordState(crosswordState);
-          replace('/mini');
         } else {
           const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
           setCrosswordState(crosswordState);
