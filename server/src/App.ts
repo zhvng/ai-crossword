@@ -9,10 +9,10 @@ class App {
     private readonly gpt: GPT;
     private readonly wordList: WordList;
 
-    constructor(apiKey: string) {
+    constructor(apiKey: string, modelName: string | undefined) {
         const configuration = new Configuration({ apiKey });
         const openAi = new OpenAIApi(configuration);
-        this.gpt = new GPT(openAi, true);
+        this.gpt = new GPT(openAi, modelName, true);
         this.wordList = new WordList();
     }
 

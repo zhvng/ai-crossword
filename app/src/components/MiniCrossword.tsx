@@ -7,10 +7,11 @@ import { theme } from '../../tailwind.config.js';
 import Modal, { ModalHandle } from './Modal';
 import { Timer } from './Timer';
 import { useRouter } from 'next/router';
-const codec = require('json-url')('lzw');
+import JsonCrush from '../utils/jsonCrush';
+import { encrypt, decrypt } from 'utils/cypher';
 
 export const MiniCrossword: FC = props => {
-  const { query, replace } = useRouter();
+  const router = useRouter();
   const crosswordType = 'mini';
   const defaultCrossword = {across: undefined, down: undefined};
   const [crosswordData, setCrosswordData] = useState(defaultCrossword);
@@ -29,26 +30,29 @@ export const MiniCrossword: FC = props => {
   useEffect(()=>{
     const fx = async () => {
       try {
-        if (query.data !== undefined) {
-          resetPuzzle();
-          const crosswordData: CrosswordData = await codec.decompress(query.data);
-          replace('/mini');
-          if (crosswordData.across === undefined || crosswordData.down === undefined) throw new Error('invalid input');
-          const { crosswordState } = await CrosswordStorage.setNewCrossword(crosswordType, crosswordData);
-          setCrosswordData(crosswordData);
-          setCrosswordState(crosswordState);
-        } else {
-          const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
-          setCrosswordState(crosswordState);
-          setCrosswordData(crosswordData);
-        }
+        const {crosswordData, crosswordState} = await CrosswordStorage.getCurrentCrossword(crosswordType);
+        setCrosswordState(crosswordState);
+        setCrosswordData(crosswordData);
       } catch(error) {
-        console.error('request error', error);
+        console.error('Load error', error);
         setLoadError(true);
       }
     }
-    fx();
-  }, [query]);
+    const queryKey = 'data';
+    const matches = router.asPath.match(new RegExp(`[&?]${queryKey}=(.*)(&|$)`));
+    if (matches !== undefined && matches instanceof Array) {
+      resetPuzzle();
+      const data = decodeURIComponent(matches[0].slice(6));
+      const crosswordData: CrosswordData = JSON.parse(JsonCrush.uncrush(decrypt(data)));
+      router.replace('/mini');
+      if (crosswordData.across === undefined || crosswordData.down === undefined) throw new Error('invalid input');
+      const { crosswordState } = CrosswordStorage.setNewCrossword(crosswordType, crosswordData);
+      setCrosswordData(crosswordData);
+      setCrosswordState(crosswordState);
+    } else {
+      fx();
+    }
+  }, [router]);
 
   const errorRetry = async () => {
     setLoadError(false);
@@ -84,11 +88,12 @@ export const MiniCrossword: FC = props => {
     }
   }
 
-  const sharePuzzle = async () =>{
-    const encodedPuzzle = await codec.compress(crosswordData);
+  const sharePuzzle = async () => {
+    const encodedPuzzle = encodeURIComponent(encrypt(JsonCrush.crush(JSON.stringify(crosswordData)))) //await codec.compress(crosswordData);
     let text = `I solved this AI generated crossword puzzle in ${Math.round(solvedTime/1000)} seconds! Solve it here:`;
     if (crosswordState.usedReveal) text = `I couldn't solve this AI generated crossword puzzle 😡. Can you?`
     const url = `https://aicrossword.app/mini?data=${encodedPuzzle}`;
+    console.log(url);
     if (navigator.share) {
       navigator.share({
         text,
@@ -109,7 +114,6 @@ export const MiniCrossword: FC = props => {
       if (!crosswordState.isSolved) {
         const newState = await CrosswordStorage.puzzleSolved(crosswordType, usedReveal);
         setCrosswordState(newState);
-        console.log('opening');
         if (!newState.usedReveal) openSolvedModal();
       }
     }

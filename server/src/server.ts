@@ -9,9 +9,10 @@ assert(process.env.OPENAI_API_KEY !== undefined);
 assert(process.env.PORT !== undefined);
 assert(process.env.STAGE !== undefined);
 const openAiAPIKey: string = process.env.OPENAI_API_KEY;
+const fineTunedModelName: string | undefined = process.env.MODEL_NAME;
 const port: number = parseInt(process.env.PORT);
 
-const app = new App(openAiAPIKey);
+const app = new App(openAiAPIKey, fineTunedModelName);
 
 const server = Fastify({
   logger: process.env.STAGE === 'dev'

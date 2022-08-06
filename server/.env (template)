@@ -3,5 +3,11 @@
 # Do NOT commit your secret keys.
 # Do NOT add your keys to this template file.
 
+# API key
 OPENAI_API_KEY=
+
+# Port to run fastify server on. Ignored when deployed on lambda.
 PORT=
+
+# Name of the GPT model to use e.g. davinci:ft-personal-date
+MODEL_NAME=

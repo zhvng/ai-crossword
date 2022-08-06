@@ -38,7 +38,7 @@ class CrosswordStorage {
         CrosswordStorage.updateCrosswordStorage(type, data, defaultState);
         return {crosswordData: data, crosswordState: defaultState};
     }
-    public static async setNewCrossword(type: CrosswordType, crosswordData: CrosswordData): Promise<{crosswordData: CrosswordData, crosswordState: CrosswordState}> {
+    public static setNewCrossword(type: CrosswordType, crosswordData: CrosswordData): {crosswordData: CrosswordData, crosswordState: CrosswordState} {
         const defaultState = CrosswordStorage.getDefaultCrosswordState();
         CrosswordStorage.updateCrosswordStorage(type, crosswordData, defaultState);
         return {crosswordData: crosswordData, crosswordState: defaultState};
