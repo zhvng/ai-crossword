@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/app"
     schedule:
       interval: "daily"
 
@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: "daily"
 
-  - package-ecosystem: "cargo"
-    directory: "/program"
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "daily"
