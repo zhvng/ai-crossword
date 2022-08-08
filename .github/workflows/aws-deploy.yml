@@ -8,13 +8,21 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "14"
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: yarn
+      - name: Install server dependencies and build server
+        working-directory: ./server
+        run: |
+          yarn
+          yarn build
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: 'us-east-1'
-      - name: Install dependencies
+      - name: Install CDK dependencies
         working-directory: ./infra
         run: yarn
       - name: Synth stack
