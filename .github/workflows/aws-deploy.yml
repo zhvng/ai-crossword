@@ -26,6 +26,8 @@ jobs:
         working-directory: ./infra
         run: yarn
       - name: Synth stack
+        env:
+          OPEN_AI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         working-directory: ./infra
         run: yarn cdk synth
       - name: Deploy stack
