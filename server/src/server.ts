@@ -6,10 +6,8 @@ import App from './App';
 
 dotenv.config();
 assert(process.env.OPENAI_API_KEY !== undefined);
-assert(process.env.PORT !== undefined);
 assert(process.env.STAGE !== undefined);
 const openAiAPIKey: string = process.env.OPENAI_API_KEY;
-const port: number = parseInt(process.env.PORT);
 
 const app = new App(openAiAPIKey);
 
@@ -35,7 +33,7 @@ server.post('/generatemini', async (_request, _reply) => {
 /**
  * Run the server!
  */
-const start = async () => {
+const start = async (port: number) => {
   try {
     await server.listen({ port });
   } catch (err) {
@@ -46,7 +44,9 @@ const start = async () => {
 
 // if called directly, e.g. node server
 if (require.main === module) {
-    start();
+  assert(process.env.PORT !== undefined);
+  const port: number = parseInt(process.env.PORT);
+  start(port);
 }
 
 export default server ;

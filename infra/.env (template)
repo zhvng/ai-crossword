@@ -1,0 +1,4 @@
+##############################################################
+# Environment variables will be injected by Github Actions
+
+OPENAI_API_KEY='<your-api-key>'

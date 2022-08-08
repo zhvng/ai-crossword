@@ -1,10 +1,8 @@
 import { Stack, StackProps, CfnOutput, Aws } from "aws-cdk-lib";
-import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import { GraphWidget, Dashboard, LogQueryWidget, TextWidget } from 'aws-cdk-lib/aws-cloudwatch';
-import { Function, Runtime, AssetCode } from "aws-cdk-lib/aws-lambda";
 import { Construct } from 'constructs';
 import { NextJSLambdaEdge } from '@sls-next/cdk-construct';
-import { HostedZone, IHostedZone } from "aws-cdk-lib/aws-route53";
+import { IHostedZone } from "aws-cdk-lib/aws-route53";
 import { DnsValidatedCertificate } from "aws-cdk-lib/aws-certificatemanager";
 
 interface NextFrontendStackProps extends StackProps {

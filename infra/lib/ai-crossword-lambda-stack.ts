@@ -3,15 +3,14 @@ import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import { DnsValidatedCertificate } from "aws-cdk-lib/aws-certificatemanager";
 import { GraphWidget, Dashboard, LogQueryWidget, TextWidget } from 'aws-cdk-lib/aws-cloudwatch';
 import { Function, Runtime, AssetCode } from "aws-cdk-lib/aws-lambda";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { ARecord, HostedZone, IHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { Construct } from 'constructs';
-import * as path from 'path';
 
 interface AiCrosswordLambdaStackProps extends StackProps {
   dashboardName: string
   domainName: string
+  openaiApiKey: string
 }
 
 export class AiCrosswordLambdaStack extends Stack {
@@ -43,7 +42,8 @@ export class AiCrosswordLambdaStack extends Stack {
       memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {
-        STAGE: 'prod'
+        STAGE: 'prod',
+        OPENAI_API_KEY: props.openaiApiKey,
       }
     });
 

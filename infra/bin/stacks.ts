@@ -5,11 +5,17 @@ import { AiCrosswordLambdaStack } from '../lib/ai-crossword-lambda-stack';
 import { Builder } from '@sls-next/lambda-at-edge';
 import { join } from 'path';
 import { NextFrontendStack } from '../lib/next-frontend-stack';
+import assert = require('assert');
+import * as dotenv from 'dotenv';
 
 export const cloudwatchDashboardName = "AiCrosswordLambdaDashboard";
 export const nextFrontendDashboardName = "NextFrontendDashboardName";
 
 async function start() {
+  dotenv.config()
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  assert(openaiApiKey !== undefined, 'OpenAI API Key not provided');
+
   const nextPath = join(__dirname, '../../app');
   const outputPath = join(nextPath, '/build');
   const builder = new Builder(nextPath, outputPath, {
@@ -24,6 +30,7 @@ async function start() {
   const backendStack = new AiCrosswordLambdaStack(app, 'AiCrosswordLambdaStack', {
     dashboardName: cloudwatchDashboardName,
     domainName,
+    openaiApiKey,
     env: {
       region: 'us-east-1',
       account: process.env.CDK_DEFAULT_ACCOUNT,
