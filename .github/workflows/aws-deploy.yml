@@ -14,11 +14,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: 'us-east-1'
-      - name: Change directory to infra 
-        run: cd infra 
       - name: Install dependencies
+        working-directory: ./infra
         run: yarn
       - name: Synth stack
+        working-directory: ./infra
         run: yarn cdk synth
       - name: Deploy stack
+        working-directory: ./infra
         run: yarn cdk deploy --all --require-approval never
