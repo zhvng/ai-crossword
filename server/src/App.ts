@@ -1,6 +1,6 @@
 import Crossword from "./Crossword";
 import WordList from "./WordList";
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 import GPT from "./GPT";
 import Utils from "./Utils";
 import { ExportedPuzzle } from "./types";
@@ -10,8 +10,9 @@ class App {
     private readonly wordList: WordList;
 
     constructor(apiKey: string) {
-        const configuration = new Configuration({ apiKey });
-        const openAi = new OpenAIApi(configuration);
+        const openAi = new OpenAI({
+            apiKey: apiKey
+        });
         this.gpt = new GPT(openAi, true);
         this.wordList = new WordList();
     }
@@ -27,7 +28,7 @@ class App {
         return result;
     }
 
-    private generateMiniCrosswordTemplate(){   
+    private generateMiniCrosswordTemplate(){
         const random = Utils.weightedRandom([0.4, 0.2, 0.2, 0.05, 0.05, 0.05, 0.05]);
 
         let template: Array<Array<boolean>> = [];

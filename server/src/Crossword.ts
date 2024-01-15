@@ -12,9 +12,9 @@ class Crossword {
     private readonly wordLocations: Array<WordLocation> = [];
 
     constructor(
-        private readonly height: number, 
-        private readonly width: number, 
-        template: Array<Array<boolean>>) 
+        private readonly height: number,
+        private readonly width: number,
+        template: Array<Array<boolean>>)
     {
         assert(template.length === height, 'template has incorrect height');
         for (const row of template) {
@@ -38,7 +38,7 @@ class Crossword {
                     let counted = false;
                     if (i === 0 || this.crossword[i-1][j] === '*') {
                         const wordLocation: WordLocation = {
-                            startingSquare: {row: i, col: j}, 
+                            startingSquare: {row: i, col: j},
                             direction: 'down',
                             number: counter,
                         };
@@ -48,7 +48,7 @@ class Crossword {
                     }
                     if (j === 0 || this.crossword[i][j-1] === '*') {
                         const wordLocation: WordLocation = {
-                            startingSquare: {row: i, col: j}, 
+                            startingSquare: {row: i, col: j},
                             direction: 'across',
                             number: counter,
                         };
@@ -64,7 +64,7 @@ class Crossword {
 
     /**
      * Get the length and currently filled in letters of a word on the puzzle.
-     * 
+     *
      * @param wordLocation Location of the start of the word and its direction.
      * @returns Number of letters in the word, a map of currently filled in letters and positions, and a list of all squares in the word.
      */
@@ -184,7 +184,7 @@ class Crossword {
                 const [success, recursiveCounter] = this.fillRecurse(wordList, newWordsRemaining, newUsedWords);
                 counter += recursiveCounter;
                 if (success) return [true, counter];
-                
+
                 // restore backup
                 for (const [j, original] of [...backup].entries()) {
                     const {row, col} = squares[j];
@@ -225,8 +225,8 @@ class Crossword {
                 const results = await Promise.all(requests);
                 const clues: Array<Clue> = [];
                 for (const [i, completion] of results.entries()) {
-                    assert(completion.data.choices);
-                    const clue = completion.data.choices[0].text;
+                    assert(completion.choices);
+                    const clue = completion.choices[0].message.content;
                     assert(clue);
                     const wordLocation = this.wordLocations[i];
                     clues.push({
@@ -236,7 +236,7 @@ class Crossword {
                     });
                 }
                 return {
-                    puzzle: JSON.stringify(this.crossword), 
+                    puzzle: JSON.stringify(this.crossword),
                     clues
                 };
             } catch (error: any) {
