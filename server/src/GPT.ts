@@ -31,11 +31,11 @@ class GPT {
             return completion;
         } else {
             return {
-                data: {
-                    choices: [{
-                        text: 'Placeholder clue. Pass in prod=true in constructor for a real clue.'
-                    }],
-                },
+                choices: [{
+                    message: {
+                        content: 'Placeholder clue. Pass in prod=true in constructor for a real clue.'
+                    }
+                }],
             };
         }
     }
